@@ -4,13 +4,15 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="15dp"
-    android:id="@+id/parent_layout">
+    android:id="@+id/parent_layout"
+    android:descendantFocusability="blocksDescendants">
 
     <ImageView
         android:layout_width="80dp"
         android:layout_height="80dp"
-        android:src="@drawable/music_player"
-        android:id="@+id/music_image"/>
+        tools:src="@drawable/music_player"
+        android:id="@+id/music_image"
+        android:contentDescription="@string/album_cover" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -36,8 +38,8 @@
         android:id="@+id/artist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/music_image"
-        android:layout_alignStart="@+id/name_of_song"
+        android:layout_alignBottom="@id/music_image"
+        android:layout_alignStart="@id/name_of_song"
         android:textColor="@color/black"
         tools:text="Artist Name" />
 

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_height="match_parent"
+    tools:context=".SelectionListActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/black"
+        android:layout_weight="0.5">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/music_player"
+            android:id="@+id/cover_image"
+            android:contentDescription="@string/playlist_image" />
+
+        <ImageButton
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:background="@color/black"
+            android:id="@+id/back_to_array"
+            android:layout_margin="15dp"
+            android:src="@drawable/ic_left_arrow"
+            android:contentDescription="@string/back" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/play_start"
+            android:layout_alignParentBottom="true"
+            android:src="@drawable/shuffle"
+            android:layout_alignParentEnd="true"
+            android:layout_marginBottom="14dp"
+            android:layout_marginEnd="20dp" />
+
+    </RelativeLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="Playlist 1"
+        android:layout_margin="8dp"
+        android:id="@+id/name_of_list"
+        android:textColor="@color/black"
+        android:layout_gravity="center_horizontal"
+        android:textSize="20sp"/>
+
+    <ListView
+        android:id="@+id/album_list_view"
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:drawSelectorOnTop="true"
+        android:orientation="vertical" />
+
+</LinearLayout>

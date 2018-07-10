@@ -1,159 +1,75 @@
 package com.example.android.tones;
 
-
-import android.Manifest;
-import android.content.ContentResolver;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 import java.util.ArrayList;
-import java.util.Objects;
-
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class SongFragment extends Fragment {
-
-    public ArrayList<Audio> audio;
-    ListView listView;
-    AudioAdapter adapter;
-    private static final int MY_PERMISSION_REQUEST = 1;
+    private ArrayList<Audio> audio = new ArrayList<>();
     public SongFragment() {
         // Required empty public constructor
     }
-
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.listview,container,false);
-        if(ContextCompat.checkSelfPermission(Objects.requireNonNull(getActivity()),
-                Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
-            if(ActivityCompat.shouldShowRequestPermissionRationale(getActivity(),
-                    Manifest.permission.READ_EXTERNAL_STORAGE)){
-                ActivityCompat.requestPermissions(getActivity(),
-                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},MY_PERMISSION_REQUEST);
-            }
-            else {
-                ActivityCompat.requestPermissions(getActivity(),
-                        new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},MY_PERMISSION_REQUEST);
-            }
+        View view = inflater.inflate(R.layout.listview, container, false);
+        if(audio.size()==0){
+            AddData();
         }
-        else {
-            doStuff(view);
-        }
-        return view;
-
-    }
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode){
-            case MY_PERMISSION_REQUEST:
-                if(grantResults.length>0 && grantResults[0]== PackageManager.PERMISSION_GRANTED){
-                    if(ContextCompat.checkSelfPermission(Objects.requireNonNull(getActivity()),
-                            Manifest.permission.READ_EXTERNAL_STORAGE)==PackageManager.PERMISSION_GRANTED){
-                        Toast.makeText(getActivity(), "Permission Granted",Toast.LENGTH_SHORT).show();
-                        doStuff(Objects.requireNonNull(getView()));
-                    }
-                    else {
-                        Toast.makeText(getActivity(),"Permission Failed",Toast.LENGTH_SHORT).show();
-
-                    }
-                }
-        }
-    }
-
-    private void doStuff(View view) {
-        listView = view.findViewById(R.id.listview);
-        audio= new ArrayList<>();
-        getMusic(view);
-        adapter = new AudioAdapter(getActivity(),android.R.layout.simple_list_item_1,audio);
-        listView.setAdapter(adapter);
+        ListView listView = view.findViewById(R.id.list_view_songs);
+        AudioAdapter audioAdapter = new AudioAdapter(getActivity(), audio);
+        listView.setAdapter(audioAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //open player
-                Toast.makeText(getContext(),"Playing "+ audio.get(position).getmSong_name() + " \n by " + audio.get(position).getmArtist(),
-                        Toast.LENGTH_SHORT).show();
                 String song_name = audio.get(position).getmSong_name();
-                if(song_name.length()>25){
-                    song_name = song_name.substring(0,25);
-                }
-                String Artist = audio.get(position).getmSong_name();
-                if(Artist.length()>20){
-                    Artist = Artist.substring(0,20);
-                }
-
-                String path = audio.get(position).getmPath()
-                        ;
-                String Duration = audio.get(position).getmDuration();
+                String artist = audio.get(position).getmArtist();
+                String duration = audio.get(position).getmDuration();
                 Intent intent = new Intent(getContext(),PlayingActivity.class);
                 Bundle bundle = new Bundle();
-                bundle.putString("artist",Artist);
-                bundle.putString("song",song_name);
-                bundle.putString("duration",Duration);
-                bundle.putString("path",path);
+                bundle.putString("name",song_name);
+                bundle.putString("artist",artist);
+                bundle.putString("duration",duration);
+                String url = audio.get(position).getmImageUrl();
+                bundle.putString("url",url);
+                bundle.putParcelableArrayList("list",audio);
+                String position_of_item = "" + position;
+                bundle.putString("position",position_of_item);
                 intent.putExtras(bundle);
                 startActivity(intent);
             }
         });
-
+        return view;
     }
-
-    public void getMusic(View view){
-        ContentResolver contentResolver = view.getContext().getContentResolver();
-        Uri songUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        Cursor songCursor= null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            songCursor = contentResolver.query(songUri,null,null,null);
-        }
-        if(songCursor != null && songCursor.moveToFirst()){
-            int songTitle = songCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
-            int songArtist = songCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
-            int duration = songCursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
-
-            do{
-                String current_title = songCursor.getString(songTitle);
-                String current_artist = songCursor.getString(songArtist);
-                String length = songCursor.getString(duration);
-                String path = songCursor.getString(songCursor.getColumnIndex(MediaStore.Audio.Media.DATA));
-                if(String.valueOf(length) != null){
-                    try{
-                        Long time = Long.valueOf(length);
-                        long seconds = time/1000;
-                        long minutes = seconds/60;
-                        seconds = seconds % 60;
-
-                        if(seconds<10){
-                            length = String.valueOf(minutes) + ":0" + String.valueOf(seconds);
-                        }else{
-                            length = String.valueOf(minutes) + ":" + String.valueOf(seconds);
-                        }
-                    }catch(NumberFormatException e){
-                        length="";
-                    }
-                }else{
-                    length="0:00";
-                }
-                audio.add(new Audio(current_title ,current_artist,length,path));
-
-            }while (songCursor.moveToNext());
-        }
+    public void AddData(){
+        audio.add(new Audio("All we Know", "The Chainsmokers", "3:14", "https://i.pinimg.com/736x/47/7a/72/477a72d603084b0284d2362ddd660a48.jpg"));
+        audio.add(new Audio("Baba Bolta Hain Bas Ho Gaya", "Ranbir Kapoor,Papon,Supriya Pathak", "4:45", "http://content.hungama.com/audio%20album/display%20image/300x300%20jpeg/5027207642.jpg"));
+        audio.add(new Audio("Bom Diggy", "Zack Night", "3:27", "https://images-na.ssl-images-amazon.com/images/I/514gZx759CL._SS500.jpg"));
+        audio.add(new Audio("Chasing The Sun","The Wanted","3:18","https://is4-ssl.mzstatic.com/image/thumb/Music/v4/e9/66/f1/e966f14c-30de-b0f0-f5c1-489ee5a59b3a/source/1200x1200bb.jpg"));
+        audio.add(new Audio("Drunk On Love","The Wanted","3:23","https://is4-ssl.mzstatic.com/image/thumb/Music/v4/e9/66/f1/e966f14c-30de-b0f0-f5c1-489ee5a59b3a/source/1200x1200bb.jpg"));
+        audio.add(new Audio("Girls Like You", "Maroon 5", "4:30", "https://is1-ssl.mzstatic.com/image/thumb/Music/v4/4f/90/b4/4f90b495-91e7-dcf3-fef6-154b7bd66e45/source/1200x1200bb.jpg"));
+        audio.add(new Audio("God's Plan", "Drake", "3:18", "https://i1.sndcdn.com/artworks-000290354802-8lvnq7-t500x500.jpg"));
+        audio.add(new Audio("I Took a Pill In Ibiza", "Mike Posner", "3:56", "https://a2-images.myspacecdn.com/images04/3/bdbcf1a618c240c4acbd89887ab4e675/600x600.jpg"));
+        audio.add(new Audio("Kar Har Maidaan Fateh", "Sukhwinder Singh,Sherya Ghoshal", "5:11", "http://content.hungama.com/audio%20album/display%20image/300x300%20jpeg/5027207642.jpg"));
+        audio.add(new Audio("Love Me Again", "John Newman", "3:54", "https://upload.wikimedia.org/wikipedia/en/5/53/John-Newman-Love-Me-Again.jpg"));
+        audio.add(new Audio("Mine", "Bazzi", "2:14", "https://direct.rhapsody.com/imageserver/images/Alb.284833279/500x500.jpg"));
+        audio.add(new Audio("Something Like This", "The Chainsmokers", "4:07", "https://i.pinimg.com/736x/47/7a/72/477a72d603084b0284d2362ddd660a48.jpg"));
+        audio.add(new Audio("Strip That Down", "Liam Payne", "3:24", "https://upload.wikimedia.org/wikipedia/en/e/ee/Liam_Payne_-_Strip_That_Down_%28Official_Single_Cover%29.png"));
+        audio.add(new Audio("Tareefan", "Badshah", "3:04", "http://lq.djring.com/covers/66172/Tareefan%20Remix.jpg"));
+        audio.add(new Audio("Tera Yaar Hu Main", "Arijit Singh", "4:24", "https://blog.thrifter.com/sites/thrifter.com/files/styles/w400h400crop/public/apple-music.jpg?itok=tWPtJy84"));
+        audio.add(new Audio("Wolves", "Selena Gomez", "3:17", "https://upload.wikimedia.org/wikipedia/en/thumb/7/73/Selena_Gomez_and_Marshmello_Wolves.jpg/220px-Selena_Gomez_and_Marshmello_Wolves.jpg"));
+        audio.add(new Audio("You owe Me", "The Chainsmokers", "2:14", "https://i.pinimg.com/736x/47/7a/72/477a72d603084b0284d2362ddd660a48.jpg"));
     }
-
 }
